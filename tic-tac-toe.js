@@ -1,87 +1,98 @@
-const squares = document.querySelectorAll('#game-board div');
-squares.forEach(square => {
-  square.classList.add('square');
-});
-
-squares.forEach(square => {
-    square.addEventListener('click', () => {
-      // Check if the square is empty
-      if (!square.classList.contains('X') && !square.classList.contains('O')) {
-        // Add an "X" or "O" to the square, depending on whose turn it is
-        const player = document.querySelector('#player-turn').textContent;
-        square.classList.add(player);
-  
-        // Update the player turn
-        document.querySelector('#player-turn').textContent = player === 'X' ? 'O' : 'X';
-  
-        // Check for a winner
-        if (checkWinner()) {
-          // Disable all squares
-          squares.forEach(square => {
-            square.classList.add('disabled');
-          });
-  
-          // Display the winner message
-          const status = document.querySelector('#status');
-          status.textContent = `Congratulations! ${player} is the Winner!`;
-          status.classList.add('you-won');
-        }
-      }
-    });
-  });
-
-  squares.forEach(square => {
-    square.addEventListener('mouseover', () => {
-      square.classList.add('hover');
-    });
-  
-    square.addEventListener('mouseout', () => {
-      square.classList.remove('hover');
-    });
-  });
-
-  function checkWinner() {
+document.addEventListener('DOMContentLoaded', function () {
+    let currentPlayer = 'X';
+    let gameBoard = [];
+    const squareDivs = document.querySelectorAll('#board div');
+    const statusUpdate = document.getElementById('status');
+    const resetButton = document.getElementsByClassName('btn')[0];
     const winningCombinations = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-  
-    for (const combination of winningCombinations) {
-      const square1 = squares[combination[0]];
-      const square2 = squares[combination[1]];
-      const square3 = squares[combination[2]];
-  
-      if (square1.classList.contains(square2.classList[0]) && square1.classList.contains(square3.classList[0])) {
-        return true;
-      }
+
+        [0, 1, 2], // Rows
+        [3, 4, 5], 
+        [6, 7, 8], 
+        [0, 3, 6], // Columns
+        [1, 4, 7], 
+        [2, 5, 8], 
+        [0, 4, 8], // Diagonals
+        [2, 4, 6]  
+
+    ];               
+    /*Defines a function to add the ".square" class to each square div*/
+    function addSquareClass(square) 
+    {
+        square.classList.add('square');
     }
-  
-    return false;
-  }
+    /*Define a function to check if a player has won*/
+    function checkForWin() 
+    {
+        for (const combination of winningCombinations) {
+            const [a, b, c] = combination;
+            if (gameBoard[a] === currentPlayer && gameBoard[b] === currentPlayer && gameBoard[c] === currentPlayer) 
+            {
+                return true; 
+            }
+        }
+        return false; 
+    }
 
-  const newGameButton = document.querySelector('#new-game-button');
-newGameButton.addEventListener('click', () => {
-  // Reset the game state
-  squares.forEach(square => {
-    square.classList.remove('X');
-    square.classList.remove('O');
-  });
+    /*Add .square to each square div*/
+    squareDivs.forEach(addSquareClass);
+    /*Adds and removes hovers, and marks*/
+    squareDivs.forEach((square, index) => 
+    {
+        /*Add hover to squares*/
+        square.addEventListener('mouseover', function(e)
+        {
+            e.target.classList.add('hover');
+        });
+        /*Removes hover from squares*/
+        square.addEventListener('mouseout', function(e)
+        {
+            e.target.classList.remove('hover');
+        });
+        /*Adds X or O to the squares*/
 
-  document.querySelector('#status').textContent = 'Player X\'s Turn';
-  document.querySelector('#status').classList.remove('you-won');
-});
-
-squares.forEach(square => {
-    square.addEventListener('click', () => {
-      if (square.classList.contains('X') || square.classList.contains('O')) {
-        // Prevent the user from placing a new "X" or "O" in the square
-        event.preventDefault();
-      }
+        square.addEventListener('click', function(e)
+        {
+            if (!e.target.classList.contains('X') && !e.target.classList.contains('O')) 
+            {
+                e.target.textContent = currentPlayer;
+                e.target.classList.add(currentPlayer);
+                gameBoard[index] = currentPlayer;
+                
+                /*Check if the current player has won*/
+                if (checkForWin(currentPlayer)) 
+                {
+                    /*Changes the status message*/
+                    statusUpdate.textContent = `Congratulations! ${currentPlayer} is the Winner!`;
+                    /*Appends 'you-won' class to status message*/
+                    statusUpdate.classList.add('you-won');
+                }
+                else 
+                {
+                    currentPlayer = currentPlayer === 'X' ? 'O' : 'X'; 
+                }                
+            }
+        });
     });
-  });
+    // Adds a click event listener to the "New Game" button to reset the board
+    resetButton.addEventListener('click', function()
+    {  /*Resets the board*/
+        gameBoard = [];
+        /*Reset the currentPlayer*/
+        currentPlayer = 'X';
+        /*Clear the text content of each square*/
+        squareDivs.forEach((square) => {
+            square.textContent = '';
+        });
+        /*Remove all classes from the squares*/
+        squareDivs.forEach((square) => {
+            square.className = '';        
+        });
+        /*Re-add the .square class to each square*/
+        squareDivs.forEach(addSquareClass);
+        /*Remove 'you-won' class*/
+        statusUpdate.classList.remove('you-won');
+        /*Reset the status*/
+        statusUpdate.textContent = `Move your mouse over a square and click to play an X or an O.`;
+    });
+});
